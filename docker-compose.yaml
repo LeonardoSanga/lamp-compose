@@ -1,0 +1,92 @@
+services:
+  php:
+    build:
+      context: ./php # indica onde está o arquivo Dockerfile
+      dockerfile: Dockerfile
+
+    container_name: lsanga-ifsp-php # apelido para o container
+    restart: always
+    volumes:
+      - ./web:/var/www/html/ # irá copiar o conteúdo da pasta src para o container
+    networks:
+      - lamp-network
+    ports:
+      # mapear as portas para ficarem visíveis na máquina host
+      - "80:80"
+    links:
+      # criar conexão com o container do banco de dados
+      - mysql
+      - postgres
+
+  postgres:
+    image: postgres:12
+    container_name : lsanga-ifsp-pgsql
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postdba
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - lamp-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: lsanga-ifsp-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: postgres@servidor.com
+      PGADMIN_DEFAULT_PASSWORD: postdba
+    ports:
+      - 8081:80
+    depends_on:
+      postgres
+    networks:
+      - lamp-network
+
+  mysql:
+    image: mysql:5.7 # a versão 8.0 está com instabilidades
+    container_name: lsanga-ifsp-mysql
+    restart: always # por padrão o docker não inicia o container, mas não precisaria
+    volumes:
+      - ./mysql:/var/lib/mysql
+    ports:
+      - "3306:3306" # mapeia a porta para funcionar no Dbeaver
+    environment:
+      MYSQL_ROOT_PASSWORD: root # definir senha do usuário root
+      MYSQL_DATABASE: teste # iniciar o container com um banco de dados criado
+    networks:
+      - lamp-network
+
+  phpmyadmin:
+    build:
+      context: ./phpmyadmin
+      dockerfile: Dockerfile
+
+    container_name: lsanga-ifsp-phpmyadmin
+    restart: always
+    volumes:
+      - /sessions
+    ports:
+      - "8080:80"
+    links:
+      - mysql
+    environment:
+      PMA_ARBITRARY: 0
+      PMA_HOST: mysql
+    networks:
+      - lamp-network
+
+  networks:
+    lamp-network:
+      driver: bridge
+
+  volumes:
+    postgres:
+    mysql:
+    web:
+      driver: local
+
+
+    
