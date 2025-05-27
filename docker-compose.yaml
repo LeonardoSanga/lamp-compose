@@ -78,15 +78,15 @@ services:
     networks:
       - lamp-network
 
-  networks:
-    lamp-network:
-      driver: bridge
+networks:
+  lamp-network:
+    driver: bridge
 
-  volumes:
-    postgres:
-    mysql:
-    web:
-      driver: local
+volumes:
+  postgres:
+  mysql:
+  web:
+    driver: local
 
 
     
